@@ -1,17 +1,20 @@
 <template>
   <div id="app">
-    <User />
+    <div class="header">
+      <Menu />
+      <h1 class="headline">Zpěvníkovač</h1>
+    </div>
     <router-view></router-view>
   </div>
 </template>
 
 <script>
-import User from "./components/User.vue";
+import Menu from "./components/Menu.vue";
 
 export default {
   name: "App",
   components: {
-    User,
+    Menu
   }
 };
 </script>
@@ -25,16 +28,99 @@ export default {
   color: #2c3e50;
 }
 
-#nav {
-  padding: 30px;
+.headline {
+  display: block;
+  position: fixed;
+  left: 0%;
+  right: 0%;
+  top: 0%;
+  bottom: auto;
+  margin-top: 30px;
 }
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
+@media screen and (max-width: 959px) {
+  .headline {
+    position: static;
+  }
 }
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+h1,
+h2,
+h3 {
+  font-family: skautbold;
+}
+
+/*------------------------------------*\
+	typografie (z cdn.skauting.cz)
+\*------------------------------------*/
+
+/* CSS Document */
+@font-face {
+  font-family: "themix";
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400.eot");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400.eot? #iefix")
+    format("embedded-opentype");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400.woff") format("woff"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400.woff2") format("woff2"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400.otf") format("opentype"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400.svg#themix") format("svg");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "themix";
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.eot");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.eot? #iefix")
+    format("embedded-opentype");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.woff") format("woff"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.woff2") format("woff2"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.otf") format("opentype"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_400i.svg#themix") format("svg");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "themix";
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700.eot");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700.eot? #iefix")
+    format("embedded-opentype");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700.woff") format("woff"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700.woff2") format("woff2"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700.otf") format("opentype"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700.svg#themix") format("svg");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "themix";
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.eot");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.eot? #iefix")
+    format("embedded-opentype");
+  src: url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.woff") format("woff"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.woff2") format("woff2"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.otf") format("opentype"),
+    url("https://cdn.skauting.cz/fonts/TheMix_LT_700i.svg#themix") format("svg");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "skautbold";
+  src: url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.eot");
+  src: url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.eot? #iefix")
+    format("embedded-opentype");
+  src: url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.woff")
+      format("woff"),
+    url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.woff2")
+      format("woff2"),
+    url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.otf")
+      format("opentype"),
+    url("https://cdn.skauting.cz/fonts/skaut-bold-webfont.svg#skautbold")
+      format("svg");
+  font-weight: normal;
+  font-style: normal;
 }
 </style>
