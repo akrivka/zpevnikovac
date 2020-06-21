@@ -5,8 +5,8 @@
     </div>
 
     <div class="md-layout-item md-size-50">
-      <h1>Informace o písni</h1>
-      <SongForm v-bind:songInfo="songInfo" />
+      <h2>Informace o písni</h2>
+      <SongForm v-bind:song_info="song_info" />
       <div class="md-alignment-top-center">
         <md-button class="md-accent" v-on:click="postSong(type)">
           Přidat do
@@ -23,6 +23,8 @@ import { store } from "../store";
 import SongEditGuidelines from "../components/SongEditGuidelines";
 import SongForm from "../components/SongForm";
 
+var slug = require("slug");
+
 export default {
   name: "Song Add",
   components: {
@@ -31,7 +33,7 @@ export default {
   },
   data() {
     return {
-      songInfo: {
+      song_info: {
         name: null,
         composer: null,
         capo: null,
@@ -46,7 +48,9 @@ export default {
   },
   methods: {
     postSong(type) {
-      store.writeSong(type, this.songInfo);
+      this.song_info.slug = slug(this.song_info.name);
+      store.writeSong(type, null, this.song_info);
+      this.$router.push("/");
     }
   }
 };

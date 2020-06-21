@@ -32,8 +32,10 @@ export default {
   },
   data() {
     return {
-      songInfo: {
+      song_info: {
+        id: null,
         name: null,
+        slug: null,
         composer: null,
         capo: null,
         content: null
@@ -41,32 +43,21 @@ export default {
     };
   },
   props: {
-    songId: {
-      type: String,
-      required: true
-    },
     type: {
-      required: true
+      type: String
     }
   },
   methods: {
     postSong(type) {
-      store.editSong(type, this.songId, this.songInfo);
+      store.writeSong(type, this.song_info.id, this.song_info);
     }
   },
   created() {
-    console.log(this.type);
-    var songs = null;
-    if (this.type === "PUBLIC") songs = store.publicSongs;
-    else songs = store.userSongs;
-
-    var song = songs.filter(sng => {
-      return sng.id === this.songId;
-    })[0];
-    this.songInfo.name = song.songInfo.name;
-    this.songInfo.composer = song.songInfo.composer;
-    this.songInfo.capo = song.songInfo.capo;
-    this.songInfo.content = song.songInfo.content;
+    var type;
+    if (!this.$route.path.includes("user")) {
+      type = "PUBLIC";
+    } else type = "USER";
+    store.getSongBySlug(type, this.$route.params.song_slug);
   }
 };
 </script>

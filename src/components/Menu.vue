@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!store.currentUser">
+    <div v-if="!store.currentUser" class="menu">
       <md-button @click.prevent="signInWithGoogle">Přihlásit se přes Google</md-button>
     </div>
     <div v-else class="menu">
@@ -11,12 +11,23 @@
         <div>{{ store.currentUser.email }}</div>
       </div>
 
-      <md-button :to="Songbooks" class="songbooks-button-large">Moje zpěvníky</md-button>
-      <md-button :to="Songbooks" class="songbooks-button-small">Zpěvníky</md-button>
-      <md-button @click.prevent="signOut" class="signout-button-large">Odhlásit se</md-button>
-      <md-button @click.prevent="signOut" class="signout-button-small">
-        <md-icon>login</md-icon>
-      </md-button>
+      <div class="menu-large">
+        <md-button to="/">Domů</md-button>
+        <md-button to="/songbooks">Moje zpěvníky</md-button>
+        <md-button @click.prevent="signOut">Odhlásit se</md-button>
+      </div>
+
+      <div class="menu-small">
+        <md-button to="/" class="menu-button-small">
+          <md-icon>home</md-icon>
+        </md-button>
+        <md-button to="/songbooks" class="menu-button-small">
+          <md-icon>book</md-icon>
+        </md-button>
+        <md-button @click.prevent="signOut" class="signout-button-small">
+          <md-icon>login</md-icon>
+        </md-button>
+      </div>
     </div>
   </div>
 </template>
@@ -71,23 +82,13 @@ export default {
   align-items: center;
 }
 
-.songbooks-button-large {
+.menu-large md-button {
   display: block;
   max-width: 160px;
   min-width: 120px;
 }
 
-.signout-button-large {
-  display: block;
-  max-width: 160px;
-  min-width: 120px;
-}
-
-.songbooks-button-small {
-  display: none;
-}
-
-.signout-button-small {
+.menu-small {
   display: none;
 }
 
@@ -101,21 +102,14 @@ export default {
     flex-shrink: 1;
     flex-basis: 0%;
   }
-  .songbooks-button-large {
-    display: none;
-  }
-  .signout-button-large {
+  .menu-large {
     display: none;
   }
 
-  .songbooks-button-small {
+  .menu-small {
     display: block;
-    max-width: 160px;
-    min-width: 120px;
   }
-
-  .signout-button-small {
-    display: block;
+  .menu-small md-button {
     max-width: 160px;
     min-width: 120px;
   }

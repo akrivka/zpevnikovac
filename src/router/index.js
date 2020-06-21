@@ -3,10 +3,12 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import SongEdit from '../views/SongEdit.vue'
 import SongAdd from '../views/SongAdd.vue'
+import SongView from '../views/SongView.vue'
+import Songbooks from '../views/Songbooks.vue'
 
 Vue.use(VueRouter)
 
-  const routes = [
+const routes = [
   {
     path: '/',
     name: 'Home',
@@ -21,16 +23,33 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
   },
   {
-    path: '/songedit/:songId',
-    name: 'Song Edit',
+    path: '/song/:song_slug/edit',
+    name: 'SongEdit',
     component: SongEdit,
     props: true
   },
   {
     path: '/songadd',
-    name: 'Song Add',
+    name: 'SongAdd',
     component: SongAdd,
     props: true
+  },
+  {
+    path: '/song/:song_slug',
+    name: "SongViewPublic",
+    component: SongView,
+    props: true
+  },
+  {
+    path: '/user/song/:song_slug',
+    name: "SongViewUser",
+    component: SongView,
+    props: true
+  },
+  {
+    path: '/songbooks',
+    name: "Songbooks",
+    component: Songbooks,
   }
 ]
 

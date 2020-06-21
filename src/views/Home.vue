@@ -13,21 +13,31 @@
       </p>
     </div>
 
-    <div class="add-button">
-      <md-button class="md-accent md-raised" :to="{name: 'Song Add', params: {type: 'PUBLIC'}}">
-        <md-icon>add</md-icon>Přidat píseň
-      </md-button>
-    </div>
-
     <div class="columns">
       <div class="md-layout">
         <div class="md-layout-item list-songs">
-          <h2>Hlavní databáze</h2>
-          <ListSongs v-on:move-song="moveSong" />
+          <div class="list-songs-header">
+            <h2>Hlavní databáze</h2>
+            <md-button
+              class="add-button md-icon-button md-accent md-raised"
+              :to="{name: 'Song Add', params: {type: 'PUBLIC'}}"
+            >
+              <md-icon>upgrade</md-icon>
+            </md-button>
+          </div>
+          <ListSongs v-bind:type="'PUBLIC'"/>
         </div>
         <div class="md-layout-item list-songs">
-          <h2>Osobní databáze</h2>
-          <ListSongs v-on:move-song="moveSong" />
+          <div class="list-songs-header">
+            <h2>Osobní databáze</h2>
+            <md-button
+              class="add-button md-icon-button md-accent md-raised"
+              :to="{name: 'Song Add', params: {type: 'USER'}}"
+            >
+              <md-icon>add</md-icon>
+            </md-button>
+          </div>
+          <ListSongs v-bind:type="'USER'"/>
         </div>
       </div>
     </div>
@@ -35,10 +45,10 @@
     <div class="tabs">
       <md-tabs>
         <md-tab id="tab-main" md-label="Hlavní">
-          <ListSongs v-on:move-song="moveSong" />
+          <ListSongs />
         </md-tab>
         <md-tab id="tab-personal" md-label="Osobní">
-          <ListSongs v-on:move-song="moveSong" />
+          <ListSongs />
         </md-tab>
       </md-tabs>
     </div>
@@ -58,9 +68,6 @@ export default {
     return {
       store
     };
-  },
-  methods: {
-    moveSong() {}
   }
 };
 </script>
@@ -82,15 +89,20 @@ export default {
 }
 
 .welcome {
-  text-align: left;
-}
-
-.add-button {
-  text-align: right;
+  text-align: add-button md-icon-button left;
 }
 
 .list-songs {
   margin: 10px;
+}
+
+.list-songs-header {
+  display: flex;
+}
+
+.list-songs-header h2 {
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 .tabs {

@@ -6,7 +6,7 @@
     </md-field>
     <md-card>
       <md-list v-for="song in filteredSongs" :key="song.id">
-        <Song v-bind:song="song" v-bind:type="'PUBLIC'" v-on:add-song="addSong(song)" />
+        <Song v-bind:song_name="song.name" v-bind:song_composer="song.composer" v-bind:song_slug="song.slug" v-bind:type="type"/>
       </md-list>
     </md-card>
   </div>
@@ -27,19 +27,16 @@ export default {
       search: ""
     };
   },
-  methods: {
-    addSong(song) {
-      store.writeSong("USER", song.songInfo);
-    },
-    removeSong(song) {
-      store.removeSong("USER", song.id);
-    }
-  },
+  props: ["type"],
   computed: {
     filteredSongs: function() {
-      if (this.store.publicSongs != null) {
-        return this.store.publicSongs.filter(song => {
-          return song.songInfo.name
+      var songs;
+      if (this.type === "PUBLIC") songs = this.store.publicSongs;
+      else songs = this.store.userSongs;
+
+      if (songs != null) {
+        return songs.filter(song => {
+          return song.name
             .toLowerCase()
             .includes(this.search.toLowerCase());
         });

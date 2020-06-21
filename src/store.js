@@ -19,12 +19,10 @@ firebase.initializeApp(firebaseConfig);
 // firebase.analytics();
 
 // a reference to the songs collection
-const publicSongsCollection = firebase.firestore()
-    .collection('songs');
 
 function getCollection(type) {
     if (type === 'PUBLIC') {
-        return publicSongsCollection;
+        return store.publicSongsCollection;
     } else {
         return store.userSongsCollection;
     }
@@ -33,63 +31,92 @@ function getCollection(type) {
 // the shared state object that any vue component
 // can get access to
 export const store = {
+    currentUser: null,
+    publicSongsCollection: firebase.firestore().collection('songs'),
     userSongsCollection: firebase.firestore().collection('users/default/songs'),
     publicSongs: null,
     userSongs: null,
-    currentUser: null,
-    writeSong: async (type, songInfo) => {
-        var collection = getCollection(type);
+    writeSong: async (type, song_id, song_info) => {
+        var doc = null;
+        if (song_id)
+            doc = getCollection(type).doc(song_id);
+        else
+            doc = getCollection(type).doc();
 
-        const dt = {
-            createdOn: new Date(),
-            author: store.currentUser.uid,
-            author_name: store.currentUser.displayName,
-            author_image: store.currentUser.photoURL,
-            songInfo
-        };
+        var batch_write = firebase.firestore().batch();
+        batch_write.set(doc, {
+            name: song_info.name,
+            slug: song_info.slug,
+            composer: song_info.composer
+        });
+        batch_write.set(doc.collection("history").doc(new Date().valueOf().toString()), {
+            user_id: store.currentUser.uid,
+            user_name: store.currentUser.displayName,
+            song_info: {
+                name: song_info.name,
+                slug: song_info.slug,
+                composer: song_info.composer,
+                capo: song_info.capo,
+                content: song_info.content
+            }
+        });
         try {
-            return collection.add(dt);
-        }
-        catch (e) {
-            return console.error('error', dt, e);
-        }
-    },
-    removeSong: async (type, songId) => {
-        var collection = getCollection(type);
-        return collection.doc(songId).delete();
-    },
-    editSong: async (type, songId, songInfo) => {
-        var collection = getCollection(type);
-
-        try {
-            return collection.doc(songId).update({
-                songInfo: songInfo
-            })
+            return batch_write.commit();
         }
         catch (e) {
             return console.error('error', e);
         }
+    },
+    removeSong: async (type, song_id) => {
+        var collection = getCollection(type);
+        return collection.doc(song_id).delete();
+    },
+    getSongInfoBySlug: async (type, song_slug) => {
+        var collection;
+        if (type === "PUBLIC") {
+            collection = store.publicSongsCollection;
+        } else collection = store.userSongsCollection;
+
+        var song_info = collection
+            .where("slug", "==", song_slug)
+            .get()
+            .then(function (results) {
+                if (results.size == 1) {
+                    return collection
+                        .doc(results.docs[0].id)
+                        .collection("history")
+                        .limit(1)
+                        .get()
+                        .then(function (latest_history) {
+                            var doc = latest_history.docs[0];
+                            song_info = doc.data().song_info
+                            song_info.id = doc.id;
+                            console.log(song_info);
+                            return song_info;
+                        });
+                } else {
+                    console.log("duplicate song slugs");
+                }
+            });
+        console.log(song_info);
+        return song_info;
     }
 };
 
-// onSnapshot is executed every time the data
-// in the underlying firestore collection changes
-// It will get passed an array of references to 
-// the documents that match your query
-publicSongsCollection
-    .orderBy('songInfo.name', 'asc')
+store.publicSongsCollection
+    .orderBy('name', 'asc')
     .onSnapshot((songsRef) => {
         const songs = [];
+        console.log(songsRef);
         songsRef.forEach((doc) => {
             const song = doc.data();
             song.id = doc.id;
             songs.push(song);
         });
-        console.log('Received songs feed:', songs);
+        console.log('Received public songs feed:', songs);
         store.publicSongs = songs;
     });
 
-// When a user logs in or out, save that in the store
 firebase.auth().onAuthStateChanged((user) => {
     console.log('Logged in as:', user);
     store.currentUser = user;
@@ -97,17 +124,15 @@ firebase.auth().onAuthStateChanged((user) => {
         .collection(`/users/${user.uid}/songs`);
 
     store.userSongsCollection
-        .orderBy('songInfo.name', 'asc')
+        .orderBy('name', 'asc')
         .onSnapshot((songsRef) => {
-            console.log(songsRef);
             const songs = [];
             songsRef.forEach((doc) => {
                 const song = doc.data();
                 song.id = doc.id;
                 songs.push(song);
             });
-            console.log('Received songs feed:', songs);
+            console.log('Received user songs feed:', songs);
             store.userSongs = songs;
         });
-
 });

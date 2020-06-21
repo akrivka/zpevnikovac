@@ -4,21 +4,21 @@
       <div class="md-layout-item md-size-50">
         <md-field class="info">
           <label>Jméno</label>
-          <md-input v-model="songInfo.name" type="text" />
+          <md-input v-model="song_info.name" type="text" />
         </md-field>
         <md-field class="info">
           <label>Autor</label>
-          <md-input v-model="songInfo.composer" type="text" />
+          <md-input v-model="song_info.composer" type="text" />
         </md-field>
         <md-field class="info">
           <label>Capo</label>
-          <md-input v-model="songInfo.capo" type="text" />
+          <md-input v-model="song_info.capo" type="text" />
         </md-field>
         <md-button v-on:click="addThreeSpaces">Přidat tři mezery na začátek každého řádku</md-button>
         <md-field class="info">
           <label>Obsah</label>
           <md-textarea
-            v-model="songInfo.content"
+            v-model="song_info.content"
             cols="50"
             md-autogrow
             style="font-family: 'PT Mono', monospace;"
@@ -32,14 +32,14 @@
 <script>
 export default {
   name: "SongForm",
-  props: ["songInfo"],
+  props: ["song_info"],
   methods: {
     addThreeSpaces() {
       var newContent = "";
-      for (let i = 0; i < this.songInfo.content.split("\n").length; i++) {
-        newContent += "   " + this.songInfo.content.split("\n")[i] + "\n"; 
+      for (let i = 0; i < this.song_info.content.split("\n").length; i++) {
+        newContent += "   " + this.song_info.content.split("\n")[i] + "\n"; 
       }
-      this.songInfo.content = newContent.slice(0, newContent.length-1);
+      this.song_info.content = newContent.slice(0, newContent.length-1);
     }
   }
 };
