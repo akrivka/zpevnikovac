@@ -1,10 +1,9 @@
 <template>
-  <div class="md-layout md-gutter md-alignment-top-center">
-    <div class="md-layout-item md-size-33">
-      <SongEditGuidelines />
-    </div>
+  <div >
+      <md-button to="/guidelines" style="float: left;">
+        <md-icon>help</md-icon>Jak na to?
+      </md-button>
 
-    <div class="md-layout-item md-size-50">
       <h2>Informace o písni</h2>
       <SongForm v-bind:song_info="song_info" />
       <div class="md-alignment-top-center">
@@ -14,22 +13,19 @@
           <span v-else>osobní</span> databáze
         </md-button>
       </div>
-    </div>
   </div>
 </template>
 
 <script>
 import { store } from "../store";
-import SongEditGuidelines from "../components/SongEditGuidelines";
 import SongForm from "../components/SongForm";
 
 var slug = require("slug");
 
 export default {
-  name: "Song Add",
+  name: "SongAdd",
   components: {
     SongForm,
-    SongEditGuidelines
   },
   data() {
     return {

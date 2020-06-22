@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!store.currentUser" class="menu">
+    <div v-if="!store.currentUser" class="menu user">
       <md-button @click.prevent="signInWithGoogle">Přihlásit se přes Google</md-button>
     </div>
     <div v-else class="menu">
@@ -13,7 +13,7 @@
 
       <div class="menu-large">
         <md-button to="/">Domů</md-button>
-        <md-button to="/songbooks">Moje zpěvníky</md-button>
+        <md-button to="/user/songbooks">Moje zpěvníky</md-button>
         <md-button @click.prevent="signOut">Odhlásit se</md-button>
       </div>
 

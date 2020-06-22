@@ -27,6 +27,31 @@ function getCollection(type) {
         return store.userSongsCollection;
     }
 }
+function getSongSnapshotBySlug(collection, slug) {
+    collection
+        .where("slug", "==", slug)
+        .get()
+        .then(function (results) {
+            if (results.size == 0) {
+                console.log("Song not found");
+            }
+            else if (results.size == 1) {
+                var id = results.docs[0].id;
+                collection
+                    .doc(id)
+                    .collection("history").orderBy("time", 'desc')
+                    .limit(1)
+                    .get()
+                    .then(function (history) {
+                        var song = history.docs[0].data();
+                        song.id = id;
+                        store.currentSong = song;
+                    });
+            } else {
+                console.log("Duplicate song slugs");
+            }
+        });
+}
 
 // the shared state object that any vue component
 // can get access to
@@ -36,6 +61,80 @@ export const store = {
     userSongsCollection: firebase.firestore().collection('users/default/songs'),
     publicSongs: null,
     userSongs: null,
+    currentSong: null,
+    listener: null,
+    songbooks: null,
+    songbookSongs: null,
+    songsToGenerate: null,
+    listenToSongs: async (type) => {
+        // console.log("Listening to " + type + " songs");
+        if (type == "PUBLIC" || type == "songbook") {
+            store.listener = getCollection(type)
+                .orderBy('name', 'asc')
+                .onSnapshot((results) => {
+                    console.log("Received " + results.size + " " + type + " songs.");
+                    const songs = [];
+                    results.forEach((doc) => {
+                        const song = doc.data();
+                        song.id = doc.id;
+                        song.path = "/songs/" + doc.id;
+                        songs.push(song);
+                    });
+                    store.publicSongs = songs;
+                });
+        } else {
+            firebase.auth().onAuthStateChanged((user) => {
+                store.userSongsCollection = firebase.firestore()
+                    .collection(`/users/${user.uid}/songs`);
+
+                store.listener = getCollection(type)
+                    .orderBy('name', 'asc')
+                    .onSnapshot((results) => {
+                        console.log("Received " + results.size + " " + type + " songs.");
+                        const songs = [];
+                        results.forEach((doc) => {
+                            const song = doc.data();
+                            song.id = doc.id;
+                            song.path = "/users/" + store.currentUser.uid + "/songs/" + doc.id;
+                            songs.push(song);
+                        });
+                        store.userSongs = songs;
+                    });
+            });
+
+        }
+    },
+    stopListeningToSongs: async (type) => {
+        // console.log("Stopping to listen to " + type + " songs.");
+        store.listener(type);
+    },
+    listenToSongbookSongs: async (songbook_slug) => {
+        firebase.auth().onAuthStateChanged(() => {
+            store.listener = firebase.firestore().collection("songbooks").where("slug", "==", songbook_slug).where("owner", "==", store.currentUser.uid)
+                .get()
+                .then(function (results) {
+                    if (results.size == 0) {
+                        console.log("Songbook not found");
+                    }
+                    else if (results.size == 1) {
+                        results.docs[0].ref.collection("songbook-songs").onSnapshot((songsRef) => {
+                            console.log(songsRef);
+                            console.log("Received " + songsRef.size + " songs.");
+                            const songs = [];
+                            songsRef.forEach((doc) => {
+                                const song = doc.data();
+                                song.id = doc.id;
+                                song.path = "/songbooks/" + songbook_slug + "/" + doc.id
+                                songs.push(song);
+                            });
+                            store.songbookSongs = songs;
+                        });
+                    } else
+                        console.log("Duplicate songbooks found");
+                });
+        });
+
+    },
     writeSong: async (type, song_id, song_info) => {
         var doc = null;
         if (song_id)
@@ -50,6 +149,7 @@ export const store = {
             composer: song_info.composer
         });
         batch_write.set(doc.collection("history").doc(new Date().valueOf().toString()), {
+            time: new Date(),
             user_id: store.currentUser.uid,
             user_name: store.currentUser.displayName,
             song_info: {
@@ -71,68 +171,98 @@ export const store = {
         var collection = getCollection(type);
         return collection.doc(song_id).delete();
     },
-    getSongInfoBySlug: async (type, song_slug) => {
-        var collection;
-        if (type === "PUBLIC") {
-            collection = store.publicSongsCollection;
-        } else collection = store.userSongsCollection;
-
-        var song_info = collection
-            .where("slug", "==", song_slug)
+    listenToSongSnapshotBySlug: async (type, slug) => {
+        var collection = getCollection(type);
+        if (type == "PUBLIC") {
+            getSongSnapshotBySlug(collection, slug);
+        } else {
+            firebase.auth().onAuthStateChanged(() => {
+                getSongSnapshotBySlug(collection, slug);
+            });
+        }
+    },
+    listenToSongbooks: async () => {
+        firebase.auth().onAuthStateChanged(() => {
+            firebase.firestore().collection("songbooks").where("owner", "==", store.currentUser.uid).get().then(function (songbookRefs) {
+                var songbooks = [];
+                songbookRefs.forEach((doc) => {
+                    songbooks.push(doc.data());
+                });
+                console.log(songbooks);
+                store.songbooks = songbooks;
+            });
+        });
+    },
+    createSongbook: async (name, slug) => {
+        firebase.firestore().collection("songbooks").add({
+            owner: store.currentUser.uid,
+            name: name,
+            slug: slug
+        });
+    },
+    writeToSongbook: async (songbook_slug, song) => {
+        firebase.firestore().collection("songbooks").where("slug", "==", songbook_slug).where("owner", "==", store.currentUser.uid)
             .get()
             .then(function (results) {
-                if (results.size == 1) {
-                    return collection
-                        .doc(results.docs[0].id)
-                        .collection("history")
-                        .limit(1)
-                        .get()
-                        .then(function (latest_history) {
-                            var doc = latest_history.docs[0];
-                            song_info = doc.data().song_info
-                            song_info.id = doc.id;
-                            console.log(song_info);
-                            return song_info;
-                        });
-                } else {
-                    console.log("duplicate song slugs");
+                if (results.size == 0) {
+                    console.log("Songbook not found");
                 }
+                else if (results.size == 1) {
+                    results.docs[0].ref.collection("songbook-songs").add({
+                        path: song.path,
+                        name: song.name,
+                        slug: song.slug,
+                        composer: song.composer,
+                    });
+                } else
+                    console.log("Duplicate songbooks found");
             });
-        console.log(song_info);
-        return song_info;
+    },
+    removeFromSongbook: async (songbook_slug, song) => {
+        store.listener = firebase.firestore().collection("songbooks").where("slug", "==", songbook_slug).where("owner", "==", store.currentUser.uid)
+            .get()
+            .then(function (results) {
+                if (results.size == 0) {
+                    console.log("Songbook not found");
+                }
+                else if (results.size == 1) {
+                    results.docs[0].ref.collection("songbook-songs").doc(song.id).delete()
+                } else
+                    console.log("Duplicate songbooks found");
+            });
+    },
+    getSongsToGenerate: (songbook_slug) => {
+        store.listener = firebase.firestore().collection("songbooks").where("slug", "==", songbook_slug).where("owner", "==", store.currentUser.uid)
+            .get()
+            .then(function (results) {
+                if (results.size == 0) {
+                    console.log("Songbook not found");
+                }
+                else if (results.size == 1) {
+                    var doc = results.docs[0].ref;
+                    doc.collection("songbook-songs").get().then(function (songRefs) {
+                        var songs = [];
+                        songRefs.forEach((doc) => {
+                            console.log(doc.data().path + "/history/");
+                            firebase.firestore().doc(doc.data().path).collection("history").orderBy("time", 'desc').limit(1).get().then(function (history) {
+                                history.docs[0].ref.get().then( function (song){
+                                    console.log(song);
+                                    songs.push(song.data());
+                                });
+                            });
+                        });
+                        store.songsToGenerate = songs;
+                    });
+                } else
+                    console.log("Duplicate songbooks found");
+            });
     }
 };
 
-store.publicSongsCollection
-    .orderBy('name', 'asc')
-    .onSnapshot((songsRef) => {
-        const songs = [];
-        console.log(songsRef);
-        songsRef.forEach((doc) => {
-            const song = doc.data();
-            song.id = doc.id;
-            songs.push(song);
-        });
-        console.log('Received public songs feed:', songs);
-        store.publicSongs = songs;
-    });
 
 firebase.auth().onAuthStateChanged((user) => {
     console.log('Logged in as:', user);
     store.currentUser = user;
     store.userSongsCollection = firebase.firestore()
         .collection(`/users/${user.uid}/songs`);
-
-    store.userSongsCollection
-        .orderBy('name', 'asc')
-        .onSnapshot((songsRef) => {
-            const songs = [];
-            songsRef.forEach((doc) => {
-                const song = doc.data();
-                song.id = doc.id;
-                songs.push(song);
-            });
-            console.log('Received user songs feed:', songs);
-            store.userSongs = songs;
-        });
 });

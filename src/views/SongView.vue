@@ -1,14 +1,19 @@
 <template>
   <div>
-    <md-button :to="{name: 'SongEdit', params: { song_slug: song_info.slug }}">
-      <md-icon>edit</md-icon>Upravit
-    </md-button>
-    <h2>{{ song_info.name }}</h2>
-    <h3>{{ song_info.composer }}</h3>
-    <h4 v-if="song_info.capo != 0 && song_info.capo">Capo: {{ song_info.capo }}</h4>
-    <div class="content">
-      <p>{{ song_info.content }}</p>
+    <div v-if="song">
+      <md-button :to="{name: route, params: { song_slug: song.song_info.slug }}">
+        <md-icon>edit</md-icon>Upravit
+      </md-button>
+      <h2>{{ song.song_info.name }}</h2>
+      <h3>{{ song.song_info.composer }}</h3>
+      <h4
+        v-if="song.song_info.capo != 0 && song.song_info.capo != null"
+      >Capo: {{ song.song_info.capo }}</h4>
+      <div class="content">
+        <p>{{ song.song_info.content }}</p>
+      </div>
     </div>
+    <div v-else>Píseň nenalezena</div>
   </div>
 </template>
 
@@ -20,29 +25,27 @@ export default {
   data() {
     return {
       store,
-      song_info: {
-        id: "",
-        name: "",
-        slug: "",
-        composer: "",
-        capo: "",
-        content: ""
-      }
+      type: ""
     };
   },
+  computed: {
+    route: function() {
+      if (this.type)
+        return (
+          "SongEdit" + this.type.charAt(0) + this.type.toLowerCase().slice(1)
+        );
+      else return null;
+    },
+    song: function() {
+      return store.currentSong;
+    }
+  },
   created() {
-    var type;
     if (!this.$route.path.includes("user")) {
-      type = "PUBLIC";
-    } else type = "USER";
-    
-    var that = this;
-    
-    this.store
-      .getSongInfoBySlug(type, this.$route.params.song_slug)
-      .then(function(result) {
-        that.song_info = result;
-      });
+      this.type = "PUBLIC";
+    } else this.type = "USER";
+
+    this.store.listenToSongSnapshotBySlug(this.type, this.$route.params.song_slug);
   }
 };
 </script>
@@ -54,7 +57,7 @@ div
   margin-right: auto
 
 .content
-  width: 300pt
+  width: 400pt
   margin-left: auto
   margin-right: auto
 

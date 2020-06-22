@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="container">
+  <div id="app">
     <div class="welcome">
       <p>Přihlaš se vlevo nahoře.</p>
       <p>Jsou dvě databáze písní: hlavní a osobní. Do osobní máš přístup jen ty. Do hlavní zatím mají přístup všichni (než vyřeším přístupová práva, editace, a tak).</p>
@@ -20,24 +20,24 @@
             <h2>Hlavní databáze</h2>
             <md-button
               class="add-button md-icon-button md-accent md-raised"
-              :to="{name: 'Song Add', params: {type: 'PUBLIC'}}"
+              :to="{name: 'SongAdd', params: {type: 'PUBLIC'}}"
             >
               <md-icon>upgrade</md-icon>
             </md-button>
           </div>
-          <ListSongs v-bind:type="'PUBLIC'"/>
+          <ListSongs v-bind:type="'PUBLIC'" />
         </div>
         <div class="md-layout-item list-songs">
           <div class="list-songs-header">
             <h2>Osobní databáze</h2>
             <md-button
               class="add-button md-icon-button md-accent md-raised"
-              :to="{name: 'Song Add', params: {type: 'USER'}}"
+              :to="{name: 'SongAdd', params: {type: 'USER'}}"
             >
               <md-icon>add</md-icon>
             </md-button>
           </div>
-          <ListSongs v-bind:type="'USER'"/>
+          <ListSongs v-bind:type="'USER'" />
         </div>
       </div>
     </div>
@@ -45,10 +45,10 @@
     <div class="tabs">
       <md-tabs>
         <md-tab id="tab-main" md-label="Hlavní">
-          <ListSongs />
+          <ListSongs v-bind:type="'PUBLIC'" />
         </md-tab>
         <md-tab id="tab-personal" md-label="Osobní">
-          <ListSongs />
+          <ListSongs v-bind:type="'USER'" />
         </md-tab>
       </md-tabs>
     </div>
@@ -68,6 +68,14 @@ export default {
     return {
       store
     };
+  },
+  created() {
+    store.listenToSongs("PUBLIC");
+    store.listenToSongs("USER");
+  },
+  destroyed() {
+    store.stopListeningToSongs("PUBLIC");
+    store.stopListeningToSongs("USER");
   }
 };
 </script>
@@ -82,14 +90,8 @@ export default {
   display: block;
 }
 
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 940px;
-}
-
 .welcome {
-  text-align: add-button md-icon-button left;
+  text-align: left;
 }
 
 .list-songs {

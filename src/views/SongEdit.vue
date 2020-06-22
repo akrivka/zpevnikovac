@@ -1,13 +1,20 @@
 <template>
-  <div class="md-layout md-gutter md-alignment-top-center">
-    <div class="md-layout-item md-size-33">
-      <SongEditGuidelines />
-    </div>
-    
-    <div class="md-layout-item md-size-50">
-      <h1>Informace o songu</h1>
-      ID: {{ songId }}
-      <SongForm v-bind:songInfo="songInfo" />
+  <div>
+    <div v-if="song">
+      <div>
+        <md-button to="/guidelines" style="float: left;">
+          <md-icon>help</md-icon>Jak na to?
+        </md-button>
+
+        <md-button v-on:click="removeSong(type)" style="float: right;">
+          Smazat píseň
+          <md-icon>delete</md-icon>
+        </md-button>
+      </div>
+
+      <h1>Informace o písni</h1>
+      Naposledy upraveno: {{ song.user_name }} ({{ date }})
+      <SongForm v-bind:song_info="song.song_info" />
       <div class="md-alignment-top-center">
         <md-button class="md-accent" v-on:click="postSong(type)">
           Upravit v
@@ -16,48 +23,71 @@
         </md-button>
       </div>
     </div>
+    <div v-else>Píseň nenalezena.</div>
   </div>
 </template>
 
 <script>
 import { store } from "../store";
-import SongEditGuidelines from "../components/SongEditGuidelines";
 import SongForm from "../components/SongForm";
 
 export default {
-  name: "Song Edit",
+  name: "SongEdit",
   components: {
-    SongForm,
-    SongEditGuidelines
+    SongForm
   },
   data() {
     return {
-      song_info: {
-        id: null,
-        name: null,
-        slug: null,
-        composer: null,
-        capo: null,
-        content: null
-      }
+      store,
+      type: null
     };
-  },
-  props: {
-    type: {
-      type: String
-    }
   },
   methods: {
     postSong(type) {
-      store.writeSong(type, this.song_info.id, this.song_info);
+      if (this.song) {
+        store.writeSong(type, this.song.id, this.song.song_info);
+      } else console.log("song not found");
+      this.$router.go(-1);
+    },
+    removeSong(type) {
+      store.removeSong(type, this.song.id);
+    }
+  },
+  computed: {
+    route: function() {
+      if (this.type)
+        return (
+          "SongEdit" + this.type.charAt(0) + this.type.toLowerCase().slice(1)
+        );
+      else return null;
+    },
+    song: function() {
+      return store.currentSong;
+    },
+    date: function() {
+      var dt = this.song.time.toDate();
+      return (
+        dt.getDate() +
+        ". " +
+        dt.getMonth() +
+        ". " +
+        dt.getFullYear() +
+        " " +
+        dt.getHours() +
+        ":" +
+        dt.getMinutes()
+      );
     }
   },
   created() {
-    var type;
     if (!this.$route.path.includes("user")) {
-      type = "PUBLIC";
-    } else type = "USER";
-    store.getSongBySlug(type, this.$route.params.song_slug);
+      this.type = "PUBLIC";
+    } else this.type = "USER";
+
+    this.store.listenToSongSnapshotBySlug(
+      this.type,
+      this.$route.params.song_slug
+    );
   }
 };
 </script>

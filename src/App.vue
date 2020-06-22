@@ -4,7 +4,9 @@
       <Menu />
       <h1 class="headline">Zpěvníkovač</h1>
     </div>
+    <div class="container">
     <router-view></router-view>
+    </div>
   </div>
 </template>
 
@@ -30,12 +32,31 @@ export default {
 
 .headline {
   display: block;
-  position: fixed;
+  position: absolute;
   left: 0%;
   right: 0%;
   top: 0%;
   bottom: auto;
   margin-top: 30px;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 940px;
+}
+
+
+@media screen and (max-width: 991px) {
+  .container {
+    max-width: 728px;
+  }
+}
+
+@media screen and (max-width: 599px) {
+  .container {
+    max-width: none;
+  }
 }
 
 @media screen and (max-width: 959px) {
